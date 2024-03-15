@@ -1,0 +1,68 @@
+groups:
+- name: substrate-multi-node-rules
+  rules:
+    - alert: NumberOfPeersLow
+      expr: substrate_chain:substrate_sub_libp2p_peers_count:ratio5m > 0.3
+      for: 15m
+      labels:
+        severity: warning
+      annotations:
+        message: '{{ $value | humanizePercentage }} of {{ $labels.chain }} has less than 3 peers for more than 15 minutes'
+
+    - alert: NumberOfPeersLow
+      expr: substrate_chain:substrate_sub_libp2p_peers_count:ratio5m > 0.5
+      for: 15m
+      labels:
+        severity: critical
+      annotations:
+        message: '{{ $value | humanizePercentage }} of {{ $labels.chain }} has less than 3 peers for more than 15 minutes'
+
+    - alert: NetworkBlockProductionStalled
+      expr: sum by (chain) (increase(substrate_block_height{status="best"}[2m])) < 1
+      for: 5m
+      labels:
+        severity: critical
+      annotations:
+        message: "The nodes of {{ $labels.chain }} network do not produce any blocks for more than 5 mins"
+
+    - alert: NodesFinalizationSlow
+      expr: substrate_chain:substrate_block_height_finalized:ratio3m > 0.3
+      for: 5m
+      labels:
+        severity: warning
+      annotations:
+        message: '{{ $value | humanizePercentage  }} of {{ $labels.chain }} do not finalize blocks for more than 5 mins'
+  
+    - alert: NodesFinalizationSlow
+      expr: substrate_chain:substrate_block_height_finalized:ratio3m > 0.5
+      for: 5m
+      labels:
+        severity: critical
+      annotations:
+        message: '{{ $value | humanizePercentage }} of {{ $labels.chain }} do not finalize blocks for more than 5 mins'
+
+    - alert: SlowRPCCallTime
+      expr: (sum by (chain) (rate(substrate_rpc_calls_time_sum{protocol="ws"}[5m])) / 1e6) > 5
+      for: 3h
+      labels:
+        severity: warning
+      annotations:
+        message: "Duration of calls in RPC nodes of {{ $labels.chain }} is taking more than 5 seconds"
+
+- name: substrate-multi-node-recording-rules
+  rules:
+    # Metric to get total number of node per chain
+    - record: substrate_chain:substrate_build_info:total
+      expr: count by (chain) (substrate_build_info)
+
+    - record: substrate_chain:substrate_block_height_finalized:count_increase0
+      expr: count by (chain) (increase(substrate_block_height{status="finalized"}[3m]) < 1)
+
+    - record: substrate_chain:substrate_block_height_finalized:ratio3m
+      expr: substrate_chain:substrate_block_height_finalized:count_increase0 / substrate_chain:substrate_build_info:total
+
+    - record: substrate_chain:substrate_sub_libp2p_peers_count:min5m
+      expr:  count by (chain) (min_over_time(substrate_sub_libp2p_peers_count[15m]) < 3) 
+
+    - record: substrate_chain:substrate_sub_libp2p_peers_count:ratio5m
+      expr: substrate_chain:substrate_sub_libp2p_peers_count:min5m / substrate_chain:substrate_build_info:total
