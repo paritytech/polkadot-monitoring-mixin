@@ -1352,8 +1352,8 @@
       {
         "current": {
           "selected": false,
-          "text": "thanos",
-          "value": "PC96415006F908B67"
+          "text": "",
+          "value": ""
         },
         "hide": 2,
         "includeAll": false,
@@ -1363,7 +1363,7 @@
         "options": [],
         "query": "prometheus",
         "refresh": 1,
-        "regex": "thanos",
+        "regex": "",
         "skipUrlSync": false,
         "type": "datasource"
       },
@@ -1505,7 +1505,7 @@
   "timepicker": {},
   "timezone": "",
   "title": "Chain Metrics Overview",
-  "uid": "bd9768c4-fab7-4c2a-ab26-41b1d22ba4ab",
+  "uid": "bd9768c4fab7",
   "version": 1,
   "weekStart": ""
 }
